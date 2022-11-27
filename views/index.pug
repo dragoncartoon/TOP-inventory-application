@@ -2,4 +2,16 @@ extends layout
 
 block content
   h1= title
-  p Welcome to #{title}
+  p Welcome to #{title}, a The Odin Project excersices 
+
+  h1 Dynamic content 
+
+  if error 
+    p Error getting content.
+  else 
+    p The Inventory has the following record counts: 
+
+    ul 
+      li #[strong Items:] !{data.item_count}
+      li #[strong Suppliers:] !{data.supplier_count}
+      li #[strong Categories:] !{data.caterogy_count}

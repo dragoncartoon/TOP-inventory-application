@@ -9,7 +9,7 @@ const SupplierSchema = new Schema({
 
 // Virtual url for supplier
 SupplierSchema.virtual("url").get(function(){
-  return `/supplier/${this.id}`;
+  return `/inventory/supplier/${this.id}`;
 })
 
 module.exports = mongoose.model("Supplier", SupplierSchema);

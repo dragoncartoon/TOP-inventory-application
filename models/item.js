@@ -8,12 +8,12 @@ const ItemSchema = new Schema({
   price: {type: Number, required: true},
   number_in_stock: {type: Number, required: true},
   category: [{type: Schema.Types.ObjectId, ref: 'Category'}],
-  supplier: [{type: Schema.Types.ObjectId, ref: 'Supplier'}],
+  supplier: {type: Schema.Types.ObjectId, ref: 'Supplier'},
 });
 
 // Virtual url for supplier
 ItemSchema.virtual("url").get(function(){
-  return `/item/${this.id}`;
+  return `/inventory/item/${this.id}`;
 })
 
 module.exports = mongoose.model("Item", ItemSchema);

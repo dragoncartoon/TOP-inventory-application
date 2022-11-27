@@ -4,14 +4,17 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose = require("mongoose");
+require('dotenv').config();
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+const inventoryRouter = require('./routes/inventory'); //Import routes for "inventory" area of site
 
 var app = express();
 
 // Set up mongoose connection
-const mongoDB = "mongodb://m001-student:m001-mongodb-basics@ac-w4rdr9v-shard-00-00.5kplvwk.mongodb.net:27017,ac-w4rdr9v-shard-00-01.5kplvwk.mongodb.net:27017,ac-w4rdr9v-shard-00-02.5kplvwk.mongodb.net:27017/inventory_application?ssl=true&replicaSet=atlas-hvcrgy-shard-0&authSource=admin&retryWrites=true&w=majority";
+const mongoDB = process.env.MONGODB_URI;
+
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
@@ -28,6 +31,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use("/inventory", inventoryRouter); // Add inventory routes to middleware chain.
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

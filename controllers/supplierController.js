@@ -1,4 +1,3 @@
-
 const Supplier = require("../models/supplier");
 
 // Display list of all Suppliers.

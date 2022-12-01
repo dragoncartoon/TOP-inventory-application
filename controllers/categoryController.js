@@ -2,6 +2,7 @@ const Category = require("../models/category");
 const Item = require("../models/item")
 
 const async = require("async");
+const { body, validationResult } = require("express-validator");
 
 // Display list of all Category.
 exports.category_list = (req, res, next) => {
@@ -55,14 +56,47 @@ exports.category_detail = (req, res, next) => {
 
 
 // Display Category create form on GET.
-exports.category_create_get = (req, res) => {
-  res.send("NOT IMPLEMENTED: Category create GET");
+exports.category_create_get = (req, res, next) => {
+  // res.send("NOT IMPLEMENTED: Category create GET");
+  res.render("category_form", {title: "Create category"});
 };
 
 // Handle Category create on POST.
-exports.category_create_post = (req, res) => {
-  res.send("NOT IMPLEMENTED: Category create POST");
-};
+exports.category_create_post = [
+  // Validate and sanitize data
+  body("name")
+    .trim()
+    .isLength({min: 2})
+    .escape()
+    .withMessage("Category must longer than 2 character"),
+    (req, res, next) => {
+      // Extract validation errors
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty) {
+        // There are errors. Render form again with sanitized message
+        res.render("category_form", {
+          title: "Create category",
+          category : req.body,
+          errors: errors.array(),
+        });
+        return;
+      }
+      // Data is valid
+      // Create new category
+      const category = new Category({
+        name: req.body.name,
+      });
+      category.save((err) => {
+        if (err) {
+          return next(err);
+        };
+        // Save success, redirect to new category record
+        res.redirect(category.url);
+      });
+    },
+];
+  
 
 // Display Category delete form on GET.
 exports.category_delete_get = (req, res) => {

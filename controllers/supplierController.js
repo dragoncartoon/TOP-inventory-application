@@ -2,6 +2,7 @@ const Supplier = require("../models/supplier");
 const Item = require("../models/item");
 
 const async = require("async");
+const {body, validationResult} = require("express-validator") 
 
 // Display list of all Suppliers.
 exports.supplier_list = (req, res, next) => {
@@ -52,13 +53,51 @@ exports.supplier_detail = (req, res) => {
 
 // Display Supplier create form on GET.
 exports.supplier_create_get = (req, res) => {
-  res.send("NOT IMPLEMENTED: Supplier create GET");
+  res.render("supplier_form", { title: "Create Supplier" });
 };
 
 // Handle Supplier create on POST.
-exports.supplier_create_post = (req, res) => {
-  res.send("NOT IMPLEMENTED: Supplier create POST");
-};
+exports.supplier_create_post = [
+  // Validate and sanitize the name field
+  body("name", "Supplier name required").trim().isLength({min: 1}).escape(),
+  // Continue process request after validation
+  (req, res, next) => {
+    // Extract validation errors from a request.
+    const errors = validationResult(req);
+    // Create supplier object with escaped and trimmed data.
+    const supplier = new Supplier({name: req.body.name});
+
+    if (!errors.isEmpty()) {
+      // Catch errors. Render the form again with sanitized values/ error messages.
+      res.render("supplier_form", {
+        title: "Create Supplier",
+        supplier,
+        errors: errors.array(),
+      });
+      return;
+    } else {
+      // Form is valid
+      // Check is Supplier with same name exists.
+      Supplier.findOne({name: req.body.name}).exec((err, found_supplier) => {
+        if (err) {
+          return next(err);
+        }
+        if (found_supplier) {
+          // Supplier exist, redirect to its detail page.
+          res.redirect(found_supplier.url);
+        } else {
+          supplier.save((err) => {
+            if (err) {
+              return next(err);
+            };
+            // Saved. Redirect to its detail page.
+            res.redirect(supplier.url);
+          });
+        };
+      });
+    };
+  },
+];
 
 // Display Supplier delete form on GET.
 exports.supplier_delete_get = (req, res) => {

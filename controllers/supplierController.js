@@ -100,13 +100,39 @@ exports.supplier_create_post = [
 ];
 
 // Display Supplier delete form on GET.
-exports.supplier_delete_get = (req, res) => {
-  res.send("NOT IMPLEMENTED: Supplier delete GET");
+exports.supplier_delete_get = (req, res, next) => {
+  async.parallel(
+    {
+      supplier(callback) {
+        Supplier.findById(req.params.id).exec(callback);
+      },
+      suppliers_items(callback) {
+        Item.find({supplier: req.params.id}).exec(callback);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return next(err);
+      };
+      if (results.supplier === null) {
+        // No results
+        res.redirect("/inventory/suppliers");
+      }
+      // Success, so render
+      res.render("supplier_delete", {
+        title: "Delete supplier",
+        supplier: results.supplier,
+        supplier_item: results.suppliers_items,
+      });
+    },
+  );
 };
 
 // Handle Supplier delete on POST.
-exports.supplier_delete_post = (req, res) => {
-  res.send("NOT IMPLEMENTED: Supplier delete POST");
+exports.supplier_delete_post = (req, res, next) => {
+  // async.parallel({
+
+  // })
 };
 
 // Display Supplier update form on GET.

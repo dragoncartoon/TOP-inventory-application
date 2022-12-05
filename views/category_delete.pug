@@ -1,0 +1,28 @@
+extends layout
+
+block content
+  h1 #{title} 
+  p #{category.name}
+
+  if category_items.length 
+
+    p #[strong Delete following items before delete this category:]
+
+    div(style='margin-left:20px;margin-top:20px')
+    
+      h4 Items 
+
+      dl 
+        each item in category_items
+          dt 
+            a(href=item.url) #{item.name} 
+          dd #{item.description} 
+
+  else 
+    p This category has no item, do you want delete?
+
+  form(method="POST" action='')
+    div.form-group 
+      input#categoryid.form-group(type="hidden", name='categoryid', required='true', value=category._id)
+
+    button.btn.btn-primary(type='submit') Delete

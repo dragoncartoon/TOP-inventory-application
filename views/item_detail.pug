@@ -7,10 +7,16 @@ block content
   p #[strong Supplier: ] 
     a(href=item.supplier.url)  #{item.supplier.name}
   p #[strong Description: ] #{item.description}
-  p #[strong Price: ] #{item.price}$
+  p #[strong Price: ] #{item.price}
   p #[strong In stock: ] #{item.number_in_stock}
   p #[strong Category: ] 
     each val, index in item.category 
       a(href=val.url) #{val.name}
       if index < item.category.length - 1
         |, 
+
+  hr
+  p
+    a(href=item.url+'/delete') Delete item
+  p
+    a(href=item.url+'/update') Update Book

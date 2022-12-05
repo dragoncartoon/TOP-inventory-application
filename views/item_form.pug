@@ -6,13 +6,13 @@ block content
   form(method='POST' action='')
     div.form-group
       label(for='name') Item: 
-      input#name.form-control(type="text", placeholder='Name of item' name='name' required='true' value=(undefined === item ? '' : item.name))
+      input#name.form-control(type="text", placeholder='Name of item', name='name', required='true', value=('undefined' === item ? '' : item.name))
     div.form-group
       label(for='price') Price: 
-      input#price.form-control(type="number", min="0" name='price')
+      input#price.form-control(type="number", min="0", name='price', value=('undefined' === price ? '' : item.price))
     div.form-group 
       label(for='number_in_stock') Number in stock: 
-      input#number_in_stock.form-control(type="number", min="0" name='number_in_stock')
+      input#number_in_stock.form-control(type="number", min="0", name='number_in_stock', value=('undefined' ===  number_in_stock? '' : item.number_in_stock))
     div.form-group 
       label(for='supplier') Supplier: 
       select#supplier.form-control(type="select", placeholder="Select supplier", name='supplier', required= 'true')

@@ -1,0 +1,32 @@
+extends layout
+
+block content
+  h1 #{title} 
+  p #{supplier.name}
+
+  if supplier_items.length 
+
+    p #[strong Delete following items before delete this supplier:.]
+
+    div(style='margin-left:20px;margin-top:20px')
+    
+      h4 Items 
+
+      dl 
+        each item in supplier_items
+          dt 
+            a(href=item.url) #{item.name} 
+          dd #{item.description} 
+
+  else 
+    p This supplier has no item, do you want delete?
+
+  form(method="POST" action='')
+    div.form-group 
+      input#supplierid.form-group(type="hidden", name='supplierid', required='true', value=supplier._id)
+
+    button.btn.btn-primary(type='submit') Delete
+  
+  //- div 
+  //-   - console.log(supplier_items)
+  //- div

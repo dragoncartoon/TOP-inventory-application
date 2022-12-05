@@ -162,7 +162,6 @@ exports.item_create_post = [
           for (const category of results.categories) {
             if (item.category.includes(category._id)) {
               category.checkedbox = "true";              
-              // console.log('Category mark checked: ', category.name)
             }
           }
 
@@ -189,30 +188,191 @@ exports.item_create_post = [
   },
 ]
 
-// name: {type:String, required: true, maxLength: 100 },
-// description: {type: String, maxLength: 200},
-// price: {type: Number, required: true},
-// number_in_stock: {type: Number, required: true},
-// category: [{type: Schema.Types.ObjectId, ref: 'Category'}],
-// supplier: {type: Schema.Types.ObjectId, ref: 'Supplier'},
-
-
 // Display Item delete form on GET.
-exports.item_delete_get = (req, res) => {
-  res.send("NOT IMPLEMENTED: Item delete GET");
+exports.item_delete_get = (req, res, next) => {
+  async.parallel(
+    {
+      item(callback) {
+        Item.findById(req.params.id).exec(callback);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return next(err)
+      };
+      // If category not exist, redirect to list.
+      if (results.item == null ) {
+        res.redirect("/inventory/items")
+      }
+
+      // Found category, render
+      res.render("item_delete", {
+        title: "Delete item",
+        item: results.item,
+      });
+    }
+  );
 };
 
+
 // Handle Item delete on POST.
-exports.item_delete_post = (req, res) => {
-  res.send("NOT IMPLEMENTED: Item delete POST");
+exports.item_delete_post = (req, res, next) => {
+  async.parallel(
+    {
+      item(callback) {
+        Item.findById(req.body.itemid).exec(callback);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return next(err);
+      };
+      // No items left, so delete item
+      Item.findByIdAndRemove(req.body.itemid, (err) => {
+        if (err) {
+          return next(err);
+        };
+        // Success, redirect to item list
+        res.redirect("/inventory/items");
+      }); 
+    },
+  );
 };
 
 // Display Item update form on GET.
-exports.item_update_get = (req, res) => {
-  res.send("NOT IMPLEMENTED: Item update GET");
+exports.item_update_get = (req, res, next) => {
+  async.parallel(
+    {
+      item(callback) {
+        Item.findById(req.params.id)
+          .populate("supplier")
+          .populate("category")
+          .exec(callback);
+      },
+      suppliers(callback) {
+        Supplier.find(callback);
+      },
+      categories(callback) {
+        Category.find(callback);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return next(err)
+      };
+      if (results.item == null) {
+        // No results
+        const err = new Error("Item not found");
+        err.status = 404;
+        return next(err);
+      };
+      // Success
+      // Mark selected category as checked
+      for (const category of results.categories) {
+        for (const categoryItem of results.item.category) {
+          if (category._id.toString() === categoryItem._id.toString()) {
+            category.checkedbox = "true";
+            // console.log(category)
+          }
+        }
+      }
+      
+      res.render("item_form", {
+        title: "Update tem",
+        item: results.item,
+        categories: results.categories,
+        suppliers: results.suppliers,
+      })
+    },
+  );
 };
 
+
 // Handle Item update on POST.
-exports.item_update_post = (req, res) => {
-  res.send("NOT IMPLEMENTED: Item update POST");
-};
+exports.item_update_post = [
+  // Convert category to an array
+  (req, res, next) => {
+    if (!Array.isArray(req.body.category)) {
+      req.body.category = typeof req.body.category === "undefined" ? [] : [req.body.category];
+    }
+    next();
+  },
+
+  // Validate and sanitize data
+  body("name", "Item name must not be empty")
+  .trim()
+  .isLength({min: 2})
+  .withMessage("Item name must longer than 2 characters")
+  .escape(),
+  body("price", "Price must be number")
+  .isCurrency({allow_negatives: false}),
+  body("number_in_stock", "Must between 0 - 9999")
+  .isInt({min: 0, max: 9999}),
+  body("category.*")
+  .escape(),
+  body("supplier")
+  .escape(),
+
+  // Process request after validate
+  (req, res, next) => {
+    const errors = validationResult(req);
+    
+    // Create Item object with escape and validation data
+    const item = new Item({
+      name: req.body.name,
+      price: req.body.price,
+      number_in_stock: req.body.number_in_stock,
+      category: typeof req.body.category === "undefined" ? [] : req.body.category,
+      supplier: req.body.supplier, 
+      _id: req.params.id,
+    });
+
+    if (!errors.isEmpty()) {
+      // There are errors. Render form again with validated message.
+
+      // Get all category and supplier for form
+      async.parallel(
+        {
+          suppliers(callback) {
+            Supplier.find(callback)
+          },
+          categories(callback) {
+            Category.find(callback);
+          },
+        },
+        (err, results) => {
+          if (err) {
+            return next(err)
+          };
+
+          // Mark selected category as checked
+          for (const category of results.categories) {
+            if (item.category.includes(category._id)) {
+              category.checked = "true";
+            };
+          };
+          res.render("item_form", {
+            title: "Update item",
+            category: results.categories,
+            supplier: results.suppliers,
+            item,
+            errors: errors.array(),
+          });
+        }
+      );
+      return;
+    }
+
+    // Form is valid. Update record
+    Item.findByIdAndUpdate(req.params.id, item, {}, (err, updateItem) => {
+      if (err) {
+        return next(err)
+      };
+
+      // Successful, redirect to detail page
+      res.redirect(updateItem.url)
+    });
+  },
+];
+
+

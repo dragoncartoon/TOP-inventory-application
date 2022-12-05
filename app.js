@@ -14,7 +14,7 @@ const helmet = require("helmet");
 
 var app = express();
 
-const helmet = require("helmet");
+app.use(helmet());
 
 // Set up mongoose connection
 const mongoDB = process.env.MONGODB_URI;

@@ -9,8 +9,12 @@ require('dotenv').config();
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const inventoryRouter = require('./routes/inventory'); //Import routes for "inventory" area of site
+const compression = require("compression");
+const helmet = require("helmet");
 
 var app = express();
+
+const helmet = require("helmet");
 
 // Set up mongoose connection
 const mongoDB = process.env.MONGODB_URI;
@@ -27,6 +31,8 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+app.use(compression()); // Compress all routes
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
